@@ -1,4 +1,4 @@
-# Projeto — Cálculo de Custo de Modulação (PLD Horário / CCEE)
+# Projeto — Cálculo de Custo de Modulação
 
 Automação em Python para executar diariamente o cálculo do custo de modulação a partir do **PLD horário do submercado SUDESTE**, gerar uma **planilha de modulação** baseada em template e (opcionalmente) **forçar recálculo/salvar/fechar no Excel** via VBScript. citeturn1search1turn11search3turn11search2turn12search2
 
