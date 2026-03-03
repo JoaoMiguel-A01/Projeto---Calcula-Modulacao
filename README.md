@@ -1,6 +1,6 @@
-=========================================================
+
 AUTOMAÇÃO DE CÁLCULO CUSTO DE MODULAÇÃO - LIASA
-=========================================================
+
 
 1. FUNÇÃO DO SISTEMA
 Este orquestrador (executar_modulacao.py) automatiza o processo diário de cálculo de modulação:
