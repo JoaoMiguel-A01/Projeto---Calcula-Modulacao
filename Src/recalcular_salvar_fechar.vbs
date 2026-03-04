@@ -7,7 +7,7 @@ Dim excel, wb
 Dim planilhaParaAbrir
 
 Set fso = CreateObject("Scripting.FileSystemObject")
-
+'Utima atualizacao: 2026-03-03
 ' ====== 1. VERIFICAR ARGUMENTOS Recebidos do Python ======
 If WScript.Arguments.Count = 0 Then
     WScript.Echo "Erro: Nenhuma planilha foi passada para o VBScript."
