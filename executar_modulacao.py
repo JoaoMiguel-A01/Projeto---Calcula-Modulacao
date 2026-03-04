@@ -239,9 +239,9 @@ def main():
 
     print(f"\n[v] Ambiente validado e configurado.")
 
-    # ===============================================
+    # ==============================================
     # LOOP INFINITO
-    # ===============================================
+    # ==============================================
     while True:
         # Lê o horário do config.ini a cada volta
         # Permite que o usuário altere o horário de execução sem precisar reiniciar o serviço
