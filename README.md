@@ -2,7 +2,7 @@
 
 Automação em Python para executar o cálculo do custo de modulação a partir do **PLD horário do submercado SUDESTE**, gerar uma **planilha de modulação** baseada em template, forçar recálculo no Excel via VBScript e enviar um relatório via Telegram.
 
-O sistema opera agora como um **Serviço Contínuo (Daemon)**, não dependendo de agendadores externos para funcionar.
+O sistema opera agora como um **Serviço Contínuo**, não dependendo de agendadores externos para funcionar.
 
 ---
 
@@ -15,7 +15,7 @@ O fluxo completo é orquestrado de forma contínua por `executar_modulacao.py`, 
 
 ---
 
-## Como funciona (cascata)
+## Como funciona
 
 ### PASSO 1 — Baixar PLD horário e gerar XLSX filtrado
 Script: `Src/baixar_pld_ccee_sudeste_xlsx.py`
@@ -42,7 +42,7 @@ O que este script faz:
   - coluna `A` (linhas 6..29) = dia do mês; coluna `C` (linhas 6..29) = PLD hora a hora (24 valores).
 - gera o arquivo com nome contendo **data + hora (HHMMSS)** para evitar duplicidade.
 
-Fim de semana (inteligente):
+Fim de semana:
 - se `USAR_TEMPLATE_FIM_DE_SEMANA=True` e for sábado/domingo, tenta usar o template alternativo `AAAA.MM.DD_Modulacao_Consumo e Cessao - FimDeSemana.xlsx`. Se o arquivo não existir, ele avisa e usa o padrão automaticamente para não quebrar a rotina.
 
 ---
@@ -88,7 +88,7 @@ Pastas geradas/garantidas automaticamente pelo orquestrador na primeira execuç�
 
 ---
 
-## Pré-requisitos e Instalação (Servidor)
+## Pré-requisitos e Instalação
 
 1. Python 3.8+ instalado na máquina.
 2. Windows com pacote Microsoft Office/Excel instalado (obrigatório para a etapa `.vbs`).
@@ -122,23 +122,12 @@ SUBMERCADO = SUDESTE
 
 [REGRAS_NEGOCIO]
 NOME_ABA = Planilha1
-CONSUMO_REDUZIDO_MWM = 4.0
-CONSUMO_MEDIO_MWM_MES = 84.0, 90.0, 90.0, 90.0, 90.0, 90.0, 110.0, 125.0, 125.0, 125.0, 125.0, 125.0
-TOTAL_RECURSO_MES = 145.37, 149.11, 142.75, 137.50, 129.05, 128.15, 108.20, 122.14, 128.73, 121.22, 117.45, 117.42
+CONSUMO_REDUZIDO_MWM = 1.0
+CONSUMO_MEDIO_MWM_MES = 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10
+TOTAL_RECURSO_MES = 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10
 USAR_TEMPLATE_FIM_DE_SEMANA = True
 
 *Nota: Você pode alterar o `HORARIO_EXECUCAO` no arquivo a qualquer momento. O serviço lerá a nova hora sem precisar ser reiniciado.*
-
----
-
-## Como executar (Modo Daemon)
-
-Não utilize o Agendador de Tarefas do Windows (Task Scheduler). Como o script possui um relógio interno robusto, ele deve ser executado como um **Serviço Contínuo**.
-
-1. Pode ser deixado aberto em uma tela de terminal no servidor:
-   python executar_modulacao.py
-
-2. Ou pode ser configurado pela equipe de TI como um Serviço do Windows (usando ferramentas como NSSM), garantindo que inicie com a máquina independentemente do login do usuário e senhas expiradas.
 
 ---
 
