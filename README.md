@@ -69,3 +69,99 @@ O VBS é chamado pelo Python para abrir o Excel de forma invisível, forçar o c
 ## Estrutura do projeto
 
 Estrutura mínima esperada antes do primeiro uso:
+
+Projeto - Modulacao/
+├── Configuracoes/
+│   └── config.ini
+├── Src/
+│   ├── baixar_pld_ccee_sudeste_xlsx.py
+│   ├── gerar_modulacao_parada_diaria_v3.py
+│   ├── NotificaCustoModulacao.py
+│   └── recalcular_salvar_fechar.vbs
+├── Templates/
+│   ├── AAAA.MM.DD_Modulacao_Consumo e Cessao.xlsx
+│   └── AAAA.MM.DD_Modulacao_Consumo e Cessao - FimDeSemana.xlsx   (opcional)
+├── executar_modulacao.py
+└── requirements.txt
+
+Pastas geradas/garantidas automaticamente pelo orquestrador na primeira execução: `PLD_Horario_Sudeste/`, `Planilha_Modulacao/`, `Logs/`, `GraficosPLD/`.
+
+---
+
+## Pré-requisitos e Instalação (Servidor)
+
+1. Python 3.8+ instalado na máquina.
+2. Windows com pacote Microsoft Office/Excel instalado (obrigatório para a etapa `.vbs`).
+3. Instalar as bibliotecas requeridas. Abra o terminal na pasta raiz e execute:
+   pip install -r requirements.txt
+
+---
+
+## Configuração (config.ini)
+
+O projeto lê as configurações no arquivo `Configuracoes/config.ini`. O orquestrador detecta a máquina e atualiza as rotas da seção `[DIRETORIOS]` automaticamente. Você precisa configurar as regras de negócio:
+
+### Modelo de `config.ini`
+
+[ORQUESTRADOR]
+MAX_TENTATIVAS_CCEE = 20
+TEMPO_ESPERA_MINUTOS = 20
+HORARIO_EXECUCAO = 17:15
+
+[TELEGRAM]
+BOT_TOKEN = SEU_TOKEN_AQUI
+CHAT_ID = SEU_CHAT_ID_AQUI
+
+[CCEE_DOWNLOAD]
+URL = https://pda-download.ccee.org.br/6A5wq97KTCWv_bvs3CqsQQ/content
+LOG_NAME = baixar_pld_ccee_sudeste_xlsx.log
+MAX_RETRIES = 5
+CONNECT_TIMEOUT = 30
+READ_TIMEOUT = 120
+SUBMERCADO = SUDESTE
+
+[REGRAS_NEGOCIO]
+NOME_ABA = Planilha1
+CONSUMO_REDUZIDO_MWM = 4.0
+CONSUMO_MEDIO_MWM_MES = 84.0, 90.0, 90.0, 90.0, 90.0, 90.0, 110.0, 125.0, 125.0, 125.0, 125.0, 125.0
+TOTAL_RECURSO_MES = 145.37, 149.11, 142.75, 137.50, 129.05, 128.15, 108.20, 122.14, 128.73, 121.22, 117.45, 117.42
+USAR_TEMPLATE_FIM_DE_SEMANA = True
+
+*Nota: Você pode alterar o `HORARIO_EXECUCAO` no arquivo a qualquer momento. O serviço lerá a nova hora sem precisar ser reiniciado.*
+
+---
+
+## Como executar (Modo Daemon)
+
+Não utilize o Agendador de Tarefas do Windows (Task Scheduler). Como o script possui um relógio interno robusto, ele deve ser executado como um **Serviço Contínuo**.
+
+1. Pode ser deixado aberto em uma tela de terminal no servidor:
+   python executar_modulacao.py
+
+2. Ou pode ser configurado pela equipe de TI como um Serviço do Windows (usando ferramentas como NSSM), garantindo que inicie com a máquina independentemente do login do usuário e senhas expiradas.
+
+---
+
+## Saídas geradas
+
+Ao final de uma execução bem-sucedida, você deve encontrar:
+- `PLD_Horario_Sudeste/`: arquivo `.xlsx` do PLD filtrado e renomeado;
+- `Planilha_Modulacao/`: planilha diária com os consumos atualizados e formatação de destaque (vermelho);
+- `Logs/`: logs do orquestrador e scripts;
+- Telegram: Mensagem formatada, gráfico `.png` da curva de PLD e planilha Excel original em anexo.
+
+---
+
+## Troubleshooting
+
+1) "Ficou tentando baixar PLD por muito tempo"
+- O site da CCEE pode estar instável ou eles atrasaram a publicação do dado do dia seguinte. O script tentará sozinho até o limite configurado em `MAX_TENTATIVAS_CCEE`.
+
+2) "Baixou arquivo, mas não gera a planilha"
+- O script validou internamente que o `.xlsx` da CCEE, embora baixado, ainda continha os dados do dia anterior. Ele retornará ao estado de espera até que o dia-alvo conste no arquivo.
+
+3) "VBS falhou ao abrir Excel / A planilha no Telegram não fez os cálculos"
+- Verifique se a máquina possui o Microsoft Excel ativado. Em servidores sem interface gráfica ou sem pacote Office, o VBS não consegue recalcular as fórmulas em segundo plano.
+
+4) "Erro de biblioteca ausente"
+- Garanta que a TI rodou o comando `pip install -r requirements.txt` na versão correta do Python do servidor.

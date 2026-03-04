@@ -35,7 +35,7 @@ def validar_pld_baixado(pasta_pld, target_date):
     try:
         import openpyxl
     except ImportError:
-        print(" [ERRO] A biblioteca 'openpyxl' não está instalada no servidor.")
+        print(" [ERRO] A biblioteca 'openpyxl' não está instalado.")
         return False
 
     for arquivo in os.listdir(pasta_pld):
@@ -119,14 +119,14 @@ def calcular_segundos_ate_horario(horario_str):
     return (alvo - agora).total_seconds()
 
 # ==========================================
-# ROTINA DIÁRIA (O TRABALHO DO DAEMON)
+# ROTINA DIÁRIA
 # ==========================================
 def rotina_diaria_de_modulacao():
     """Esta é a função que será chamada todos os dias no horário agendado."""
     imprimir_cabecalho("INICIANDO A ROTINA DIÁRIA DE MODULAÇÃO")
     base_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # Lê o config a cada execução, para caso a TI altere valores sem reiniciar o serviço
+    # Lê o config a cada execução
     config_path = os.path.join(base_dir, "Configuracoes", "config.ini")
     config = configparser.ConfigParser()
     config.optionxform = str
@@ -136,7 +136,7 @@ def rotina_diaria_de_modulacao():
     tempo_espera_minutos = config.getint("ORQUESTRADOR", "TEMPO_ESPERA_MINUTOS", fallback=20)
 
     # Verifica Regras de Negócio antes de iniciar
-    print("🔐 Verificando variáveis de negócio...")
+    print("Verificando variáveis de negócio...")
     chaves = [
         ("TELEGRAM", "BOT_TOKEN"),
         ("TELEGRAM", "CHAT_ID"),
@@ -154,12 +154,12 @@ def rotina_diaria_de_modulacao():
     if vazios:
         print(" [ERRO CRÍTICO] Preencha no 'config.ini':", ", ".join(vazios))
         print(" [BLOQUEIO] A rotina de hoje foi cancelada por falta de variáveis. Tentarei amanhã.")
-        return # O "return" cancela a rotina de hoje, mas mantém o serviço vivo
+        return # O "return" cancela a rotina de hoje, mas mantém o serviço rodando
 
     print("\n" + "=" * 60 + "\nINICIANDO CASCATA\n" + "=" * 60)
 
     # PASSO 1: Baixar PLD
-    print(f"\n⏳ PASSO 1: Baixar PLD (Até {max_tentativas_ccee} tentativas)")
+    print(f"\n PASSO 1: Baixar PLD (Até {max_tentativas_ccee} tentativas)")
     script_pld = os.path.join(base_dir, "Src", "baixar_pld_ccee_sudeste_xlsx.py")
     pasta_pld = os.path.join(base_dir, "PLD_Horario_Sudeste")
 
@@ -168,7 +168,7 @@ def rotina_diaria_de_modulacao():
         return
 
     # PASSO 2: Preencher Template
-    print("\n⏳ PASSO 2: Preencher Template")
+    print("\n PASSO 2: Preencher Template")
     script_gerar = os.path.join(base_dir, "Src", "gerar_modulacao_parada_diaria_v3.py")
     try:
         subprocess.run([sys.executable, script_gerar], check=True)
@@ -181,7 +181,7 @@ def rotina_diaria_de_modulacao():
         return
 
     # PASSO 3: Analisar Cenários e Enviar
-    print("\n⏳ PASSO 3: Analisar Cenários e Enviar Telegram")
+    print("\n PASSO 3: Analisar Cenários e Enviar Telegram")
     script_notifica = os.path.join(base_dir, "Src", "NotificaCustoModulacao.py")
     try:
         subprocess.run([sys.executable, script_notifica], check=True)
@@ -189,14 +189,14 @@ def rotina_diaria_de_modulacao():
         print("\n[ERRO] O relatório financeiro falhou ao ser enviado. Abortando hoje.")
         return
 
-    imprimir_cabecalho("ESTEIRA DE PRODUÇÃO CONCLUÍDA COM SUCESSO! ✅")
+    imprimir_cabecalho("Processo concluído com sucesso!")
 
 
 # ==========================================
 # INICIALIZAÇÃO E LOOP DO SERVIÇO NATIVO
 # ==========================================
 def main():
-    imprimir_cabecalho("SERVIÇO DE MODULAÇÃO INICIADO (Modo Daemon Nativo)")
+    imprimir_cabecalho("SERVIÇO DE MODULAÇÃO INICIADO")
     base_dir = os.path.dirname(os.path.abspath(__file__))
 
     config_path = os.path.join(base_dir, "Configuracoes", "config.ini")
@@ -240,10 +240,11 @@ def main():
     print(f"\n[v] Ambiente validado e configurado.")
 
     # ===============================================
-    # O CORAÇÃO DO DAEMON - LOOP INFINITO NATIVO
+    # LOOP INFINITO
     # ===============================================
     while True:
-        # Lê o horário do config.ini a cada volta (permite que a TI altere sem reiniciar o serviço)
+        # Lê o horário do config.ini a cada volta
+        # Permite que o usuário altere o horário de execução sem precisar reiniciar o serviço
         config.read(config_path, encoding='utf-8')
         horario = config.get("ORQUESTRADOR", "HORARIO_EXECUCAO", fallback="17:15")
         
@@ -251,9 +252,9 @@ def main():
         segundos_espera = calcular_segundos_ate_horario(horario)
         horas_espera = segundos_espera / 3600
         
-        print(f"\n[zZz] O Mestre está dormindo. Ele acordará em {horas_espera:.2f} horas, exatamente às {horario}.")
+        print(f"\n[zZz] Aguardando execução. Hora Definida: {horas_espera:.2f} horas, exatamente às {horario}.")
         
-        # O programa pausa aqui e não consome nada da CPU do servidor
+        # O programa pausa aqui até chegar no horário definido, economizando recursos do sistema
         time.sleep(segundos_espera)
         
         # Quando acorda, executa a rotina

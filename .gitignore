@@ -1,0 +1,15 @@
+Configuracoes/config.ini
+
+# Ignorar pastas de saída geradas pelo robô
+Logs/
+Planilha_Modulacao/
+PLD_Horario_Sudeste/
+GraficosPLD/
+
+# Ignorar todos os arquivos de log, independente da pasta
+*.log
+
+# Ignorar arquivos temporários do Python e do sistema
+__pycache__/
+*.pyc
+~$*.xlsx

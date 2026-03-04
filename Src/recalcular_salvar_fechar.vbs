@@ -4,18 +4,18 @@ Option Explicit
 
 Dim fso, logPath, logFile
 Dim excel, wb
-Dim ficheiroParaAbrir
+Dim planilhaParaAbrir
 
 Set fso = CreateObject("Scripting.FileSystemObject")
 
 ' ====== 1. VERIFICAR ARGUMENTOS Recebidos do Python ======
 If WScript.Arguments.Count = 0 Then
-    WScript.Echo "Erro: Nenhum ficheiro foi passado para o VBScript."
+    WScript.Echo "Erro: Nenhuma planilha foi passada para o VBScript."
     WScript.Quit 1
 End If
 
 ' O Python passa o caminho exato do planilha recém-criada como o primeiro argumento
-ficheiroParaAbrir = WScript.Arguments(0)
+planilhaParaAbrir = WScript.Arguments(0)
 
 ' ====== 2. CONFIGURAR LOG ======
 ' Guarda o log na mesma pasta onde este script VBS está guardado
@@ -23,7 +23,7 @@ logPath = fso.GetParentFolderName(WScript.ScriptFullName) & "\recalcular_salvar.
 On Error Resume Next
 Set logFile = fso.OpenTextFile(logPath, 8, True) ' 8 = append
 If Err.Number <> 0 Then
-    ' Se falhar (ex: falta de permissões), guarda na pasta TEMP do Windows
+    ' Se falhar, guarda na pasta TEMP do Windows
     Err.Clear
     logPath = CreateObject("WScript.Shell").ExpandEnvironmentStrings("%TEMP%") & "\recalcular_salvar.log"
     Set logFile = fso.OpenTextFile(logPath, 8, True)
@@ -37,11 +37,11 @@ Sub Log(msg)
 End Sub
 
 Log "=== INICIO ==="
-Log "O Python solicitou a abertura de: " & ficheiroParaAbrir
+Log "O Python solicitou a abertura de: " & planilhaParaAbrir
 
-' Verifica se o ficheiro existe mesmo antes de abrir o Excel
-If Not fso.FileExists(ficheiroParaAbrir) Then
-    Log "[ERRO] Ficheiro nao encontrado: " & ficheiroParaAbrir
+' Verifica se a planilha existe mesmo antes de abrir o Excel
+If Not fso.FileExists(planilhaParaAbrir) Then
+    Log "[ERRO] Planilha nao encontrada: " & planilhaParaAbrir
     Log "=== FIM (ERRO) ==="
     logFile.Close
     WScript.Quit 2
@@ -65,9 +65,9 @@ excel.DisplayAlerts = False
 excel.AskToUpdateLinks = False
 
 On Error Resume Next
-Log "A abrir o ficheiro no Excel..."
-' Abre o ficheiro (0 = não atualizar links, False = não abrir em modo de leitura)
-Set wb = excel.Workbooks.Open(ficheiroParaAbrir, 0, False)
+Log "A abrir o planilha no Excel..."
+' Abre o planilha (0 = não atualizar links, False = não abrir em modo de leitura)
+Set wb = excel.Workbooks.Open(planilhaParaAbrir, 0, False)
 
 If Err.Number <> 0 Then
     Log "[ERRO] Open falhou: " & Err.Description
